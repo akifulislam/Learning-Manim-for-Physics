@@ -46,13 +46,18 @@ class VectorResolution(Scene):
         vector_b = plane.get_vector(vector_b_coords, color=BLUE)
         vector_b_label = MathTex(r"\vec{B}", color=BLUE).next_to(vector_b, direction=RIGHT + UP * 0.25, buff=0.1)
         
+        # Unit vector for B (added to point in the direction of B)
+        unit_vector_b_coords = vector_b_coords / np.linalg.norm(vector_b_coords)
+        unit_vector_b = plane.get_vector(unit_vector_b_coords, color=TEAL)
+        unit_vector_b_label = MathTex(r"\hat{n}_B", color=TEAL).next_to(unit_vector_b, UP, buff=0.1)
+        
         # Create vertical and horizontal lines from the end of vector B
-        vector_b_vertical_line = plane.get_vertical_line(vector_b.get_end(), color=YELLOW)
+        vector_b_vertical_line = plane.get_vertical_line(vector_b.get_end(), color=ORANGE)
         vector_b_horizontal_line = plane.get_horizontal_line(vector_b.get_end(), color=YELLOW)
 
         # Create labels for the horizontal and vertical lines
         B_x_label = MathTex("B_x", color=YELLOW).next_to(vector_b_horizontal_line, DOWN, buff=0.2)
-        B_y_label = MathTex("B_y", color=YELLOW).next_to(vector_b_vertical_line, RIGHT, buff=0.2)
+        B_y_label = MathTex("B_y", color=ORANGE).next_to(vector_b_vertical_line, RIGHT, buff=0.2)
 
         theta_tracker = ValueTracker(0)
         # Headers and dynamically updated mathematical notations
@@ -115,6 +120,7 @@ class VectorResolution(Scene):
         self.play(Create(plane), Write(x_label), Write(y_label), rate_func=exponential_decay, run_time=1.5)
         self.play(
             Write(vector_b), Write(vector_b_label),
+            Write(unit_vector_b), Write(unit_vector_b_label),
             Write(header_vector), Write(vector_component_text),
             Write(header_components), Write(bx_by_text),
             Write(header_magnitude), Write(magnitude_text),
@@ -128,12 +134,23 @@ class VectorResolution(Scene):
         # Smoothly rotate vector B using a ValueTracker
         vector_b_copy = vector_b.copy()
         vector_b_label_copy = vector_b_label.copy()
+        unit_vector_b_copy = unit_vector_b.copy()
+        unit_vector_b_label_copy = unit_vector_b_label.copy()
 
         vector_b.add_updater(lambda vec: vec.become(
             vector_b_copy.copy().rotate(theta_tracker.get_value() * DEGREES, about_point=plane.get_origin())
         ))
         vector_b_label.add_updater(lambda lbl: lbl.become(
             vector_b_label_copy.copy().rotate(theta_tracker.get_value() * DEGREES, about_point=plane.get_origin())
+            .rotate(-theta_tracker.get_value() * DEGREES)
+        ))
+        
+        # Update unit vector to follow vector B's direction
+        unit_vector_b.add_updater(lambda uvec: uvec.become(
+            unit_vector_b_copy.copy().rotate(theta_tracker.get_value() * DEGREES, about_point=plane.get_origin())
+        ))
+        unit_vector_b_label.add_updater(lambda lbl: lbl.become(
+            unit_vector_b_label_copy.copy().rotate(theta_tracker.get_value() * DEGREES, about_point=plane.get_origin())
             .rotate(-theta_tracker.get_value() * DEGREES)
         ))
 
@@ -151,19 +168,19 @@ class VectorResolution(Scene):
         
         # Animate the rotation of vector B
         self.add(theta_text_1)
-        self.play(theta_tracker.animate(run_time=5, rate_func=smooth).set_value(90))
+        self.play(theta_tracker.animate(run_time=10, rate_func=smooth).set_value(90))
         self.wait(1.0)
         self.remove(theta_text_1)
         self.add(theta_text_2)
-        self.play(theta_tracker.animate(run_time=5, rate_func=smooth).set_value(180))
+        self.play(theta_tracker.animate(run_time=10, rate_func=smooth).set_value(180))
         self.wait(1.0)
         self.remove(theta_text_2)
         self.add(theta_text_3)
-        self.play(theta_tracker.animate(run_time=5, rate_func=smooth).set_value(270))
+        self.play(theta_tracker.animate(run_time=10, rate_func=smooth).set_value(270))
         self.wait(1.0)
         self.remove(theta_text_3)
         self.add(theta_text_4)
-        self.play(theta_tracker.animate(run_time=5, rate_func=smooth).set_value(360))
+        self.play(theta_tracker.animate(run_time=10, rate_func=smooth).set_value(360))
         self.wait(1.0)
         self.remove(theta_text_4)
         
@@ -177,6 +194,7 @@ class VectorResolution(Scene):
             Unwrite(B_x_label), Unwrite(B_y_label),
             Unwrite(vector_b_horizontal_line), Unwrite(vector_b_vertical_line),
             Unwrite(vector_b_label), Unwrite(vector_b),
+            Unwrite(unit_vector_b), Unwrite(unit_vector_b_label),
             Unwrite(x_label), Unwrite(y_label), 
             Uncreate(plane), Unwrite(title), Uncreate(underline),
             run_time=1, rate_func=smooth
